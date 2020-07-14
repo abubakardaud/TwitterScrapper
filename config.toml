@@ -3,26 +3,24 @@
 
 [ build ]
 
-HASH_TAG = ["#acab", "#blm"]
+#only uses the first one for now, will do multiprocessing later
+HASH_TAG = ["#acab","#BLM","#Cool"]
 # placed inside a nested array, the relvent twitter keys are placed in this order
 # consumer_key, consumer_secret , access_token , access_token_secret
+#only uses 1 key for now.
 API_KEYS = [
 [ "DjIoNZUIgCFjWGwUqSK5URonu" ,"RSD0dzVW2ueIWhOsVvp2NBDBTCoOKqwlzpGIAl38GAsTBGHWZJ","1267900781480550400-eQfU9yqYrSAFa0NpHyldWAUdlWepkl","MVloTLzM4THjVCo87ELkoS0rSRL7agz6ppYDuFxzz0CI9"],
 [ "Uy4VXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ,"Ewt9jXXXXXXXXXXXXXXXXXXXXXXXX","1040877050XXXXXXXXXXXXXXXXXXXXXX","gM9TM4XXXXXXXXXXXXXXXXXXX"]
 ]
 
 # Filers for the tweets.
-min_retweets = 2
-min_faves = 10
 start_date = "2020-01-01"
-min_follower_count = 0
-min_tweet_count = 0
+num_requested = 20
 
 # Notable users profile scrapper
 # for notable users who meet some of these conditions scrape their entire profile going x months back
-notable_start = "2020-01-01"
 verified = true
-notable_min_retweet = 500
 notable_min_fav = 500
-notable_min_replies = 500
+notable_min_followers = 10
+
 
