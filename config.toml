@@ -4,7 +4,7 @@
 [ build ]
 
 #only uses the first one for now, will do multiprocessing later
-HASH_TAG = ["#acab","#BLM","#Cool"]
+HASH_TAG = ["#QANON","#BLM","#Cool"]
 # placed inside a nested array, the relvent twitter keys are placed in this order
 # consumer_key, consumer_secret , access_token , access_token_secret
 #only uses 1 key for now.
@@ -15,7 +15,7 @@ API_KEYS = [
 
 # Filers for the tweets.
 start_date = "2020-01-01"
-num_requested = 20
+num_requested = 100000
 
 # Notable users profile scrapper
 # for notable users who meet some of these conditions scrape their entire profile going x months back
