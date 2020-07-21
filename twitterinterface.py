@@ -1,4 +1,5 @@
 import concurrent.futures
+import json
 import sys
 import toml
 import time
@@ -7,7 +8,10 @@ import datetime
 import sqlite3
 import traceback
 from tweepy import RateLimitError, TweepError
+import tweepy
 import multiprocessing
+from textblob import TextBlob
+
 
 # Globals
 counter_var = 0
@@ -18,6 +22,12 @@ counter_var = 0
 config = toml.load("config.toml")
 hash_tag_array = config["build"]["HASH_TAG"]
 api_key_array = config["build"]["API_KEYS"]
+ignore_retweet = config["build"]["ignore_retweets"]
+if (ignore_retweet == 1):
+    ignore_retweet = True
+else:
+    ignore_retweet = False
+
 
 notable_min_followers = config["build"]["notable_min_followers"]
 start_date = config["build"]["start_date"]
@@ -76,8 +86,8 @@ def auth(consumer_key, consumer_secret, access_token, access_token_secret, numbe
     try:
         auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
         auth.set_access_token(access_token, access_token_secret)
-        api_object = tweepy.API(auth)
-        return api_object
+
+        return auth
     except:
         print("authentication failed for number" + str(number_in_array))
         inputedval = input("would you like to terminate the entire program? (Y/N)")
@@ -131,6 +141,7 @@ def limit_handle(cursor):
 
 def get_hashtag(tupple):
     auth = tupple[0]
+    auth = tweepy.API(auth)
     hashtag_string = tupple[1]
     global counter_var
     Tweet_fail = 0
@@ -163,12 +174,53 @@ def get_hashtag(tupple):
     connection.commit()
 
 
-# + "," + tweet.author.screen_name + "," + tweet.user.id_str + "," + tweet.created_at + "," + tweet.author.location + "," + str(tweet.retweet_count) + "," + str(tweet.favorite_count) + "," + tweet.full_text + "\n"
+#Streaming code,
+
+class StreamListener(tweepy.StreamListener):
+    def on_status(self, status):
+        print(status.text)
+        if status.retweeted_status:
+            if ignore_retweet:
+                return
+
+    def on_error(self, status_code):
+        print(status_code)
+        if status_code == 420:
+            time.sleep(15 * 60 )
+
+    def on_data(self, raw_data):
+        tweet = json.loads(raw_data)
+        print (tweet)
+        if 'text' in tweet:
+
+                crsr.execute("insert into Authors values(?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+                    tweet['user']['id'], tweet['user']['name'], tweet['user']['screen_name'], tweet['user']['description'], tweet['user']['location'],
+                    tweet['user']['verified'], tweet['user']['followers_count'], tweet['user']['friends_count'],
+                    tweet['user']['favourites_count'],
+                    tweet['user']['statuses_count'], tweet['user']['default_profile'], tweet['user']['default_profile_image'],
+                    tweet['user']['created_at']))
+
+                crsr.execute("insert into Tweets values(?,?,?,?,?,?,?,?)", (
+                    tweet['id'], tweet['user']['screen_name'], tweet['created_at'], tweet['user']['location'], tweet['text'],
+                    tweet['favorite_count'], tweet['created_at'], tweet['user']['id']))
+                connection.commit()
+                return True
+
+
+def run_streaming(auth):
+    stream_listener = StreamListener()
+    stream = tweepy.Stream(auth=auth, listener=stream_listener)
+    stream.filter(track=hash_tag_array,languages=['en'],stall_warnings= True)
+
+
+# end of streaming code.
 
 
 if __name__ == "__main__":
 
     authentication_ids = auth_array(api_key_array)
+
+
     '''
     pool_array = []
     counter = 0
@@ -180,7 +232,8 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool()
     results = pool.map(get_hashtag,pool_array)
     '''
-
-    get_hashtag([authentication_ids[0],hash_tag_array[0]])
+    print(authentication_ids)
+    run_streaming(authentication_ids[0])
+    #get_hashtag([authentication_ids[0],hash_tag_array[0]])
     connection.commit()
 

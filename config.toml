@@ -13,6 +13,16 @@ API_KEYS = [
 [ "Uy4VXXXXXXXXXXXXXXXXXXXXXXXXXXXX" ,"Ewt9jXXXXXXXXXXXXXXXXXXXXXXXX","1040877050XXXXXXXXXXXXXXXXXXXXXX","gM9TM4XXXXXXXXXXXXXXXXXXX"]
 ]
 
+DataBase_name = "QANON"
+#where we want to the data to go to.
+
+Streaming = 1
+#boolean, do you want to stream the data or not
+
+ignore_retweets = 1
+# if 1 will ignore, if 0 will not ignore.
+
+
 # Filers for the tweets.
 start_date = "2020-01-01"
 num_requested = 100000
