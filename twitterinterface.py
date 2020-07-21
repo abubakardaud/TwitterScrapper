@@ -51,7 +51,8 @@ Author_loc VARCHAR(200),
 Text VARCHAR(280),
 Fav_count INTEGER,
 created_time VARCHAR(120),
-Author_id INTEGER);"""
+Author_id INTEGER,
+sentiment INTEGER);"""
 
 sql_command2 = """CREATE TABLE Authors (  
 AuthorID INTEGER PRIMARY KEY,  
@@ -66,7 +67,8 @@ favourites_count INTEGER,
 statuses_count INTEGER,
 default_profile VARCHAR(20),
 default_profile_image VARCHAR (20),
-created_at VARCHAR(300));"""
+created_at VARCHAR(300),
+avg_sentiment INTEGER);"""
 
 try:
     crsr.execute(sql_command)
@@ -145,23 +147,24 @@ def get_hashtag(tupple):
     hashtag_string = tupple[1]
     global counter_var
     Tweet_fail = 0
+    val = None
     print(hashtag_string)
     for tweet in limit_handle(
             tweepy.Cursor(auth.search, q=hashtag_string, lang="en", since=start_date,
                           tweet_mode="extended").items(num_requested)):
         try:
-            crsr.execute("insert into Tweets values(?,?,?,?,?,?,?,?)", (
+            crsr.execute("insert into Tweets values(?,?,?,?,?,?,?,?,?,?)", (
             tweet.id, tweet.author.screen_name, tweet.created_at, tweet.author.location, tweet.full_text,
-            tweet.favorite_count, tweet.created_at, tweet.user.id))
+            tweet.favorite_count, tweet.created_at, tweet.user.id, val))
         except:
             Tweet_fail = Tweet_fail + 1
 
         try:
-            crsr.execute("insert into Authors values(?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+            crsr.execute("insert into Authors values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
                 tweet.user.id, tweet.user.name, tweet.user.screen_name, tweet.user.description, tweet.user.location,
                 tweet.user.verified, tweet.user.followers_count, tweet.user.friends_count, tweet.user.favourites_count,
                 tweet.user.statuses_count, tweet.user.default_profile, tweet.user.default_profile_image,
-                tweet.user.created_at))
+                tweet.user.created_at, val))
         except:
             Tweet_fail = Tweet_fail + 1
 
@@ -193,16 +196,16 @@ class StreamListener(tweepy.StreamListener):
         print (tweet)
         if 'text' in tweet:
 
-                crsr.execute("insert into Authors values(?,?,?,?,?,?,?,?,?,?,?,?,?)", (
+                crsr.execute("insert into Authors values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)", (
                     tweet['user']['id'], tweet['user']['name'], tweet['user']['screen_name'], tweet['user']['description'], tweet['user']['location'],
                     tweet['user']['verified'], tweet['user']['followers_count'], tweet['user']['friends_count'],
                     tweet['user']['favourites_count'],
                     tweet['user']['statuses_count'], tweet['user']['default_profile'], tweet['user']['default_profile_image'],
-                    tweet['user']['created_at']))
+                    tweet['user']['created_at'], None))
 
-                crsr.execute("insert into Tweets values(?,?,?,?,?,?,?,?)", (
+                crsr.execute("insert into Tweets values(?,?,?,?,?,?,?,?,?)", (
                     tweet['id'], tweet['user']['screen_name'], tweet['created_at'], tweet['user']['location'], tweet['text'],
-                    tweet['favorite_count'], tweet['created_at'], tweet['user']['id']))
+                    tweet['favorite_count'], tweet['created_at'], tweet['user']['id'], None))
                 connection.commit()
                 return True
 
@@ -217,6 +220,8 @@ def run_streaming(auth):
 
 
 if __name__ == "__main__":
+
+
 
     authentication_ids = auth_array(api_key_array)
 
